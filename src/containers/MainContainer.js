@@ -16,7 +16,7 @@ class MainContainer extends Component {
     }
 
     handleScroll = () => {
-        this.myRef.current.scrollTop+this.myRef.current.clientHeight >= this.myRef.current.scrollHeight-200
+        this.myRef.current.scrollTop+this.myRef.current.clientHeight === this.myRef.current.scrollHeight
             ?this.setState({page:this.state.page*1+1})
             :null;
     };
