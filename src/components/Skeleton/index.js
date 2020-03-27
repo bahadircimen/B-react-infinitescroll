@@ -15,7 +15,9 @@ class Card extends Component {
                         <i className="fas fa-images fa-10x"/>
                     </div>
                     <div className={styles.cardFooter}>
-                        <div className={styles.content}></div>
+                        <div className={styles.cont}>
+                            <div className={styles.content}></div>
+                        </div>
                         <i className="fas fa-download fa-lg"/>
                     </div>
                 </div>

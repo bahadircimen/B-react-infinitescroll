@@ -1,4 +1,4 @@
-import React, {Component, Fragment, useEffect, useState} from 'react';
+import React, {Component, Fragment} from 'react';
 import styles from "./styles.scss";
 import store from "../store";
 import Card from "../components/Card";
@@ -7,15 +7,16 @@ import Skeleton from "../components/Skeleton";
 class MainContainer extends Component {
     constructor(props) {
         super(props);
+        this.myRef = React.createRef();
         this.state = {
             page:"1",
             photos:[],
-            loading:false,
+            loading:true,
         }
     }
 
     handleScroll = () => {
-        window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight
+        this.myRef.current.scrollTop+this.myRef.current.clientHeight >= this.myRef.current.scrollHeight-200
             ?this.setState({page:this.state.page*1+1})
             :null;
     };
@@ -33,24 +34,7 @@ class MainContainer extends Component {
         let res = await store.getData({page:this.state.page});
         let data = res.data;
         this.setState({photos:[...this.state.photos,...data],loading:false});}
-        window.addEventListener('scroll', this.handleScroll);
-    }
 
-    componentWillUnmount() {
-        window.removeEventListener('scroll', this.handleScroll);
-    }
-
-    renderSkeleton() {
-        let dummyPhotos = [];
-        for (let i=1; i<13; i++)
-            dummyPhotos.push(i);
-        return dummyPhotos.map(d => {
-            return (
-                <div key={d} className={styles.colMd3}>
-                    <Skeleton/>
-                </div>
-            );
-        });
     }
 
     renderCard() {
@@ -58,12 +42,14 @@ class MainContainer extends Component {
         return photos.map((d,index) => {
             return (
                 <div key={index} className={styles.colMd3}>
-                    <Card
-                        author={d.author}
-                        download_url={d.download_url}
-                        width={d.width}
-                        height={d.height}
-                    />
+                    { this.state.loading ?<Card/>:
+                        <Card
+                            author={d.author}
+                            download_url={d.download_url}
+                            width={d.width}
+                            height={d.height}
+                        />
+                    }
                 </div>
             );
         });
@@ -72,10 +58,9 @@ class MainContainer extends Component {
     render() {
         return (
             <Fragment>
-                <div className={styles.container}>
+                <div onScroll={this.handleScroll} ref={this.myRef} className={styles.container}>
                     <div className={styles.row}>
                         {this.renderCard()}
-                        {(this.state.loading || !this.state.photos.length) && this.renderSkeleton()}
                     </div>
                 </div>
             </Fragment>
