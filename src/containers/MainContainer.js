@@ -9,47 +9,69 @@ class MainContainer extends Component {
         super(props);
         this.myRef = React.createRef();
         this.state = {
-            page:"1",
-            photos:[],
-            loading:true,
+            page: "1",
+            photos: []
         }
     }
 
-    handleScroll = () => {
-        this.myRef.current.scrollTop+this.myRef.current.clientHeight === this.myRef.current.scrollHeight
-            ?this.setState({page:this.state.page*1+1})
-            :null;
+    async componentDidMount() {
+        this.addTempData([]);
+        this.fetchData([]);
+    }
+
+    // async componentDidUpdate(prevProps, prevState) {
+    // burada tek değişkenin (page) değişimini izlediğin için ve bu değişken sadece scrollda değiştiği için
+    // componentDidUpdate'te izlemek yerine değişkenin değiştiği yerde (handleScroll) bu işlemi yapabilirsin
+    // if (this.state.page !== prevState.page) {
+    // 	const photos = this.state.photos;
+    // 	this.addTempData(photos);
+    // 	this.fetchData(photos);
+    // }
+    // }
+
+    addTempData = (photos) => {
+        let tempData = new Array(13)
+            .fill(0)
+            .map(() => ({
+                author: "",
+                download_url: "",
+                width: "",
+                height: ""
+            }))
+        ;
+        this.setState({photos: [...photos, ...tempData]});
     };
 
-    async componentDidMount() {
-        this.setState({ loading: true });
-        let res = await store.getData({page:this.state.page});
+    fetchData = async (photos) => {
+        let res = await store.getData({page: this.state.page});
         let data = res.data;
-        this.setState({photos:[...this.state.photos,...data],loading:false});
-    }
+        this.setState({photos: [...photos, ...data]});
+    };
 
-    async componentDidUpdate(prevProps, prevState) {
-        if (this.state.page !== prevState.page)
-        {this.setState({ loading: true });
-        let res = await store.getData({page:this.state.page});
-        let data = res.data;
-        this.setState({photos:[...this.state.photos,...data],loading:false});}
-
-    }
+    handleScroll = () => {
+        const container = this.myRef.current;
+        let scrollPercentage = 100 * container.scrollTop / (container.scrollHeight - container.clientHeight);
+        if (scrollPercentage > 80 && scrollPercentage < 90) {
+            this.setState({page: this.state.page * 1 + 1}, () => {
+                console.log("new data fetching started");
+                const photos = this.state.photos;
+                this.addTempData(photos);
+                this.fetchData(photos);
+            });
+        }
+    };
 
     renderCard() {
         let {photos} = this.state;
-        return photos.map((d,index) => {
+        return photos.map((d, index) => {
             return (
-                <div key={index} className={styles.colMd3}>
-                    { this.state.loading ?<Card/>:
-                        <Card
-                            author={d.author}
-                            download_url={d.download_url}
-                            width={d.width}
-                            height={d.height}
-                        />
-                    }
+                <div key={`image-card-${index}`} className={styles.colMd3}>
+                    <Card
+                        author={d.author}
+                        download_url={d.download_url}
+                        width={d.width}
+                        height={d.height}
+                    />
                 </div>
             );
         });
